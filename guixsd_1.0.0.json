@@ -1,0 +1,50 @@
+{
+  "builders": [
+    {
+      "type": "qemu",
+      "iso_url": "isos/guix-system-install-1.0.0.x86_64-linux.iso",
+      "iso_checksum": "d3898453bfd5f8d5b8ebc5e9e70c1a0032d34b5ae626dd0887c7e189c63c0edc",
+      "iso_checksum_type": "sha256",
+      "disk_size": "20480",
+      "format": "qcow2",
+      "headless": false,
+      "accelerator": "kvm",
+      "http_directory": "http",
+      "qemuargs": [[ "-m", "4096M" ]],
+      "boot_wait": "40s",
+      "boot_command": [
+	  "<enter>",
+	  "<down><down><down><down><down><down><down><down><down><down><down><down><down><down><down><down>",
+	  "<enter>",
+	  "<down>",
+	  "<enter>",
+	  "<wait>",
+	  "<enter>",
+
+	  "(echo o; echo n; echo p; echo 1; echo; echo; echo w) | fdisk /dev/vda<enter>",
+	  "mkfs.ext4 -L ROOT /dev/vda1<enter>",
+	  "mount LABEL=ROOT /mnt<enter>",
+
+	  "herd start cow-store /mnt<enter>",
+	  "mkdir /mnt/etc<enter>",
+
+	  "guix install wget<enter><wait20s>",
+	  "wget http://{{ .HTTPIP }}:{{ .HTTPPort }}/config.scm -O /mnt/etc/config.scm<enter>",
+	  "time guix system init /mnt/etc/config.scm /mnt<enter>",
+
+	  "echo -e 'root\\nroot' | passwd root<enter>",
+	  "herd start ssh-daemon<enter>"
+      ],
+      "shutdown_command": "shutdown",
+      "ssh_username": "root",
+      "ssh_password": "root",
+      "ssh_timeout": "20m"
+    }
+  ],
+  "post-processors": [
+    {
+      "type": "compress",
+      "output": "guixsd_1.0.0-x86_64.qcow2.gz"
+    }
+  ]
+}
